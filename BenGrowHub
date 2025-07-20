@@ -11,7 +11,7 @@ end
 
 -- Valid Pets
 local validPets = {
-	"Raccoon", "Spinosaurus", "Disco Bee",
+	"Raccoon", "Kitsune", "Spinosaurus", "Disco Bee",
 	"T-Rex", "Butterfly", "Dragonfly", "Fennec Fox"
 }
 
