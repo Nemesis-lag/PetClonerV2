@@ -21,8 +21,8 @@ screenGui.Name = GUI_NAME
 screenGui.ResetOnSpawn = false
 
 local mainFrame = Instance.new("Frame", screenGui)
-mainFrame.Size = UDim2.new(0, 300, 0, 240)
-mainFrame.Position = UDim2.new(0.5, -150, 0.5, -120)
+mainFrame.Size = UDim2.new(0, 300, 0, 260)
+mainFrame.Position = UDim2.new(0.5, -150, 0.5, -165)
 mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
 mainFrame.Active = true
@@ -88,10 +88,36 @@ dropdown.MouseButton1Click:Connect(function()
 	dropdownList.Visible = not dropdownList.Visible
 end)
 
+-- Weight input
+local weightBox = Instance.new("TextBox", mainFrame)
+weightBox.Size = UDim2.new(0.8, 0, 0, 30)
+weightBox.Position = UDim2.new(0.5, 0, 0, 78)
+weightBox.AnchorPoint = Vector2.new(0.5, 0)
+weightBox.BackgroundColor3 = Color3.fromRGB(70, 0, 90)
+weightBox.PlaceholderText = "Enter weight (kg)"
+weightBox.Text = ""
+weightBox.Font = Enum.Font.Gotham
+weightBox.TextSize = 14
+weightBox.TextColor3 = Color3.new(1, 1, 1)
+Instance.new("UICorner", weightBox).CornerRadius = UDim.new(0, 6)
+
+-- Age input
+local ageBox = Instance.new("TextBox", mainFrame)
+ageBox.Size = UDim2.new(0.8, 0, 0, 30)
+ageBox.Position = UDim2.new(0.5, 0, 0, 114)
+ageBox.AnchorPoint = Vector2.new(0.5, 0)
+ageBox.BackgroundColor3 = Color3.fromRGB(70, 0, 90)
+ageBox.PlaceholderText = "Enter age (years)"
+ageBox.Text = ""
+ageBox.Font = Enum.Font.Gotham
+ageBox.TextSize = 14
+ageBox.TextColor3 = Color3.new(1, 1, 1)
+Instance.new("UICorner", ageBox).CornerRadius = UDim.new(0, 6)
+
 -- Clone button
 local cloneBtn = Instance.new("TextButton", mainFrame)
 cloneBtn.Size = UDim2.new(0.8, 0, 0, 30)
-cloneBtn.Position = UDim2.new(0.5, 0, 0, 88)
+cloneBtn.Position = UDim2.new(0.5, 0, 0, 150)
 cloneBtn.AnchorPoint = Vector2.new(0.5, 0)
 cloneBtn.BackgroundColor3 = Color3.fromRGB(90, 0, 110)
 cloneBtn.Text = "Clone it"
@@ -103,7 +129,7 @@ Instance.new("UICorner", cloneBtn).CornerRadius = UDim.new(0, 6)
 -- Status label
 local statusLabel = Instance.new("TextLabel", mainFrame)
 statusLabel.Size = UDim2.new(0.9, 0, 0, 50)
-statusLabel.Position = UDim2.new(0.5, 0, 0, 130)
+statusLabel.Position = UDim2.new(0.5, 0, 0, 180)
 statusLabel.AnchorPoint = Vector2.new(0.5, 0)
 statusLabel.BackgroundTransparency = 1
 statusLabel.Font = Enum.Font.GothamBold
@@ -114,8 +140,8 @@ statusLabel.Text = ""
 
 -- Percentage label
 local percentLabel = Instance.new("TextLabel", mainFrame)
-percentLabel.Size = UDim2.new(0.8, 0, 0, 30)
-percentLabel.Position = UDim2.new(0.5, 0, 0, 180)
+percentLabel.Size = UDim2.new(0.9, 0, 0, 50)
+percentLabel.Position = UDim2.new(0.5, 0, 0, 145)
 percentLabel.AnchorPoint = Vector2.new(0.5, 0)
 percentLabel.BackgroundTransparency = 1
 percentLabel.Font = Enum.Font.GothamBold
@@ -138,7 +164,7 @@ closeBtn.MouseButton1Click:Connect(function()
 	screenGui:Destroy()
 end)
 
--- Held Pet Detector
+-- Pet detector
 local function getHeldPetName()
 	local character = Player.Character or Player.CharacterAdded:Wait()
 	local tool = character:FindFirstChildOfClass("Tool")
@@ -148,7 +174,6 @@ local function getHeldPetName()
 	return parsed, tool
 end
 
--- Clone Logic
 cloneBtn.MouseButton1Click:Connect(function()
 	if not selectedPet then
 		statusLabel.Text = "⚠️ Please select a pet to begin."
@@ -156,41 +181,54 @@ cloneBtn.MouseButton1Click:Connect(function()
 	end
 
 	local heldPetName, tool = getHeldPetName()
-	if not heldPetName then
+	if not heldPetName or not tool then
 		statusLabel.Text = "⚠️ You're not holding a valid pet."
 		return
 	end
 
 	local cleanHeld = heldPetName:lower():gsub("%s+", "")
 	local cleanExpected = selectedPet:lower():gsub("%s+", "")
-
 	if cleanHeld ~= cleanExpected then
 		statusLabel.Text = "❌ Pet mismatch!\nHeld: " .. heldPetName .. "\nSelected: " .. selectedPet
 		return
 	end
 
-	-- Begin cloning
-	statusLabel.Text = "⏳ Initiating clone sequence..."
+	local weight = tonumber(weightBox.Text)
+	local age = tonumber(ageBox.Text)
+
+	if not weight or weight <= 0 then
+		statusLabel.Text = "❗ Invalid weight (use numbers like 5.0)"
+		return
+	end
+	weight = tonumber(string.format("%.2f", weight))
+
+	if not age or age < 0 or age % 1 ~= 0 then
+		statusLabel.Text = "❗ Age must be a whole number."
+		return
+	end
+
+	age = math.floor(age)
+
+	statusLabel.Text = "⏳ Cloning in progress..."
 	percentLabel.Text = "0%"
 	cloneBtn.Visible = false
 
 	local duration = 180
 	local step = duration / 100
 
-	-- Start percentage bar
 	task.spawn(function()
-		for i = 1, 100 do
-			percentLabel.Text = i .. "%"
-			task.wait(step)
-		end
+	for i = 1, 100 do
+		percentLabel.Text = i .. "%"
+		task.wait(step)
+	end
 
-		-- Clone logic (client-side only)
-		local cloned = tool:Clone()
-		cloned.Parent = Player:WaitForChild("Backpack")
+	local cloned = tool:Clone()
+	local formattedName = string.format("%s [%.2f KG] [Age %d]", selectedPet, weight, age)
+	cloned.Name = formattedName
+	cloned.Parent = Player:WaitForChild("Backpack")
 
-		-- Final message
-		statusLabel.Text = "✅ Clone successful!\nReconnect to activate.\n⚠️ If it doesn’t appear, try again later."
-		percentLabel.Text = ""
-		cloneBtn.Visible = true
+	statusLabel.Text = "✅ Clone successful! Rejoin to activate.\n⚠️ If the pet does not appear!\nTry running the script again."
+	percentLabel.Text = ""
+	cloneBtn.Visible = true
 	end)
 end)
